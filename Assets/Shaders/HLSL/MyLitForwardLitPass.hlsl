@@ -73,6 +73,10 @@ float4 Fragment(Vert2Frag input) : SV_TARGET {
     inputData.normalWS = normalize(input.normalWS);
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
+    // Set the shadow coordinates. Unity will automatically deal with the shadow mapping.
+    // This is a float4. How does Unity know which light it's working on? Maybe this runs once per light?
+    inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+
     // SurfaceData holds information about the material properties, such as colour.
     SurfaceData surfaceData = (SurfaceData)0; // Initialise it to 0.
     surfaceData.albedo = albedoSample.rgb * _Color.rgb;

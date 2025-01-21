@@ -23,6 +23,7 @@ Shader "Terri/MyLit" {
 
 			HLSLPROGRAM // Begin HLSL code.
 
+			// Enable specular lighting.
 			#define _SPECULAR_COLOR
 
 			// Tell the shader to find the function named "Vertex" in our HLSL code, and use it as the vertex function.
@@ -32,11 +33,31 @@ Shader "Terri/MyLit" {
 
 			// Unity 6 Forward+ renderer requires this on shaders for them to take realtime lights.
 			#pragma multi_compile _ _FORWARD_PLUS
+			
+			// RECEIVE (not cast) shadows.
+			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+			#pragma multi_compile_fragment _ _SHADOWS_SOFT
 
 			// Include our HLSL code. Seperating it out makes the code reusable.
 			#include "HLSL/MyLitForwardLitPass.hlsl"
 
 			ENDHLSL // End HLSL code.
+		}
+
+		// CAST (not receive) shadows.
+		Pass {
+			Name "ShadowCaster"
+			Tags {"LightMode" = "ShadowCaster"}
+
+			// Tell the renderer that we don't need colour buffers.
+			ColorMask 0
+
+			HLSLPROGRAM
+			#pragma vertex Vertex
+			#pragma fragment Fragment
+
+			#include "HLSL/MyLitShadowCasterPass.hlsl"
+			ENDHLSL
 		}
 	}
 }

@@ -8,6 +8,12 @@ Shader "Terri/MyLit" {
 		[MainColor] _Color("Color", Color) = (1, 1, 1, 1)
 		[MainTexture] _AlbedoMap("Albedo", 2D) = "white" {}
 		_Smoothness("Smoothness", Float) = 0
+
+		[HideInInspector] _SourceBlend("Source Blend", Float) = 0
+		[HideInInspector] _DestBlend("Destination Blend", Float) = 0
+		[HideInInspector] _ZWrite("ZWrite", Float) = 0
+
+		[HideInInspector] _SurfaceType("Surface Type", Float) = 0
 	}
 
 	// Subshaders allow for different behaviour and options for different pipelines and platforms.
@@ -16,8 +22,10 @@ Shader "Terri/MyLit" {
 		// List of sub shader tags: https://docs.unity3d.com/Manual/SL-SubShaderTags.html
 		Tags {
 			"RenderPipeline" = "UniversalPipeline"
-			"RenderType" = "Transparent"
-			"Queue" = "Transparent"
+			"RenderType" = "Opaque"
+
+			// "RenderType" = "Transparent"
+			// "Queue" = "Transparent"
 		}
 
 		Pass {
@@ -25,8 +33,9 @@ Shader "Terri/MyLit" {
 			// List of pass tags: https://docs.unity3d.com/6000.0/Documentation/Manual/urp/urp-shaders/urp-shaderlab-pass-tags.html
 			Tags{"LightMode" = "UniversalForward"} // UniversalForward tells unity that this pass is the forward lighting pass in URP.
 
-			Blend SrcAlpha OneMinusSrcAlpha
-			// ZWrite Off
+			// Blend SrcAlpha OneMinusSrcAlpha
+			Blend[_SourceBlend][_DestBlend]
+			ZWrite [_ZWrite]
 
 			HLSLPROGRAM // Begin HLSL code.
 
@@ -67,4 +76,6 @@ Shader "Terri/MyLit" {
 			ENDHLSL
 		}
 	}
+
+	CustomEditor "MyLitCustomInspector"
 }

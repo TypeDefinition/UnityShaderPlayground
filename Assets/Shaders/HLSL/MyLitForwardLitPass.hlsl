@@ -36,8 +36,6 @@ struct Vert2Frag { // We can name this struct anything we want.
 
 // The vertex function, runs once per vertex.
 Vert2Frag Vertex(Attributes input) {
-    Vert2Frag output;
-
     // GetVertexPositionInputs is from ShaderVariableFunctions.hlsl in the URP package.
     // VertexPositionInputs is defined as
     /*
@@ -50,7 +48,8 @@ Vert2Frag Vertex(Attributes input) {
     */
     VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS); // Apply the model-view-projection transformations onto our position.
     VertexNormalInputs normalInputs = GetVertexNormalInputs(input.normalOS); // Apply the normal matrix transformation onto our normal.
-    
+
+    Vert2Frag output;
     output.positionCS = positionInputs.positionCS; // Set the clip space position.
     output.uv = TRANSFORM_TEX(input.uv, _AlbedoMap); // Get the UV position after applying offset & tiling.
     output.positionWS = positionInputs.positionWS; // Set the world space position.
@@ -85,6 +84,5 @@ float4 Fragment(Vert2Frag input) : SV_TARGET {
     surfaceData.smoothness = _Smoothness;
 
     // UniversalFragmentBlinnPhong is a URP library helper function that does Blinn-Phong lighting for us.
-    float4 output = UniversalFragmentBlinnPhong(inputData, surfaceData);
-    return output;
+    return UniversalFragmentBlinnPhong(inputData, surfaceData);
 }

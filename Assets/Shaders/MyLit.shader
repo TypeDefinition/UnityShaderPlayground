@@ -14,12 +14,19 @@ Shader "Terri/MyLit" {
 	SubShader {
 		// These tags are shared by all passes in this sub shader.
 		// List of sub shader tags: https://docs.unity3d.com/Manual/SL-SubShaderTags.html
-		Tags {"RenderPipeline" = "UniversalPipeline"}
+		Tags {
+			"RenderPipeline" = "UniversalPipeline"
+			// "RenderType" = "Transparent"
+			// "Queue" = "Transparent"
+		}
 
 		Pass {
 			Name "ForwardLit" // Name for debugging purposes.
 			// List of pass tags: https://docs.unity3d.com/6000.0/Documentation/Manual/urp/urp-shaders/urp-shaderlab-pass-tags.html
 			Tags{"LightMode" = "UniversalForward"} // UniversalForward tells unity that this pass is the forward lighting pass in URP.
+
+			// Blend SrcAlpha OneMinusSrcAlpha
+			// ZWrite Off
 
 			HLSLPROGRAM // Begin HLSL code.
 

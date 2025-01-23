@@ -13,6 +13,7 @@ SAMPLER(sampler_AlbedoMap); // The sampler MUST be named "sampler_" + "texture n
 float4 _AlbedoMap_ST; // This contains the UV tiling and offset data, and is automatically set by Unity. It MUST be named "texture name" + "_ST". Used in TRANSFORM_TEX to apply UV tiling.
 
 float _Smoothness;
+float _Specular;
 
 // This attributes struct receives data about the mesh we are currently rendering.
 // Data is automatically placed in the fields according to their semantic.
@@ -80,7 +81,7 @@ float4 Fragment(Vert2Frag input) : SV_TARGET {
     SurfaceData surfaceData = (SurfaceData)0; // Initialise it to 0.
     surfaceData.albedo = albedoSample.rgb * _Color.rgb;
     surfaceData.alpha = albedoSample.a * _Color.a;
-    surfaceData.specular = 1;
+    surfaceData.specular = _Specular;
     surfaceData.smoothness = _Smoothness;
 
     // UniversalFragmentBlinnPhong is a URP library helper function that does Blinn-Phong lighting for us.

@@ -8,12 +8,12 @@ Shader "Terri/MyLit" {
 		[MainColor] _Color("Color", Color) = (1, 1, 1, 1)
 		[MainTexture] _AlbedoMap("Albedo", 2D) = "white" {}
 		_Smoothness("Smoothness", Float) = 0
+		_Specular("Specularity", Float) = 0.1
 
-		[HideInInspector] _SourceBlend("Source Blend", Float) = 0
-		[HideInInspector] _DestBlend("Destination Blend", Float) = 0
-		[HideInInspector] _ZWrite("ZWrite", Float) = 0
-
-		[HideInInspector] _SurfaceType("Surface Type", Float) = 0
+		[HideInInspector] _SurfaceType("Surface Type", Integer) = 0
+		[HideInInspector] _SourceBlend("Source Blend", Integer) = 1 // Enum value of BlendMode.One.
+		[HideInInspector] _DestBlend("Destination Blend", Integer) = 0 // Enum value of BlendMode.Zero.
+		[HideInInspector] _ZWrite("ZWrite", Integer) = 1 // True
 	}
 
 	// Subshaders allow for different behaviour and options for different pipelines and platforms.
@@ -23,7 +23,7 @@ Shader "Terri/MyLit" {
 		Tags {
 			"RenderPipeline" = "UniversalPipeline"
 			"RenderType" = "Opaque"
-
+			"Queue" = "Geometry"
 			// "RenderType" = "Transparent"
 			// "Queue" = "Transparent"
 		}
@@ -34,6 +34,7 @@ Shader "Terri/MyLit" {
 			Tags{"LightMode" = "UniversalForward"} // UniversalForward tells unity that this pass is the forward lighting pass in URP.
 
 			// Blend SrcAlpha OneMinusSrcAlpha
+			// ZWrite Off
 			Blend[_SourceBlend][_DestBlend]
 			ZWrite [_ZWrite]
 

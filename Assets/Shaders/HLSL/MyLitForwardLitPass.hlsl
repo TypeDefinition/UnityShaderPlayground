@@ -1,19 +1,12 @@
+// Header Guards
+#ifndef MY_LIT_FORWARD_LIT_PASS_HLSL
+#define MY_LIT_FORWARD_LIT_PASS_HLSL
+
 // Pull in URP library functions and our own common functions.
 // URP library functions can be found via the Unity Editor in "Packages/Universal RP/Shader Library/".
 // The HLSL shader files for the URP are in the Packages/com.unity.render-pipelines.universal/ShaderLibrary/ folder in your project.
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-
-// Material Properties
-// Even though we declared this in the ShaderLab file, we also need to redeclare it in the HLSL file, and make sure the name exactly matches.
-float4 _Color;
-
-// Textures are a little more complicated to deal with.
-TEXTURE2D(_AlbedoMap); // TEXTURE2D is actually a macro, not a type. This is because behind the scenes, HLSL will replace this with whatever texture type the graphics API you're using. (OpenGL, DirectX, Metal, Vulkan, etc.)
-SAMPLER(sampler_AlbedoMap); // The sampler MUST be named "sampler_" + "texture name".
-float4 _AlbedoMap_ST; // This contains the UV tiling and offset data, and is automatically set by Unity. It MUST be named "texture name" + "_ST". Used in TRANSFORM_TEX to apply UV tiling.
-
-float _Smoothness;
-float _Specular;
+#include "MyLitCommon.hlsl"
 
 // This attributes struct receives data about the mesh we are currently rendering.
 // Data is automatically placed in the fields according to their semantic.
@@ -62,20 +55,30 @@ Vert2Frag Vertex(Attributes input) {
 // The fragment function, runs once per pixel on the screen.
 // It must have a float4 return type and have the SV_TARGET semantic.
 // Values in the Vert2Frag have been interpolated based on each pixel's position.
-float4 Fragment(Vert2Frag input) : SV_TARGET {
+float4 Fragment(Vert2Frag input
+#ifdef _DOUBLE_SIDED_NORMALS
+    ,FRONT_FACE_TYPE frontFace : FRONT_FACE_SEMANTIC // Optional parameter to determine if the surface is front facing or back facing.
+#endif
+) : SV_TARGET {
     // Sample the color map.
     float4 albedoSample = SAMPLE_TEXTURE2D(_AlbedoMap, sampler_AlbedoMap, input.uv);
     
+    TestAlphaClip(albedoSample * _Color);
+
     // Input Data holds information about the mesh at the current fragment.
     InputData inputData = (InputData)0; // Initialise it to 0.
     inputData.positionCS = input.positionCS;
     inputData.positionWS = input.positionWS;
-    inputData.normalWS = normalize(input.normalWS);
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
+    inputData.normalWS = normalize(input.normalWS);
 
     // Set the shadow coordinates. Unity will automatically deal with the shadow mapping.
     // This is a float4. How does Unity know which light it's working on? Maybe this runs once per light?
     inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+
+    #ifdef _DOUBLE_SIDED_NORMALS
+        inputData.normalWS *= IS_FRONT_VFACE(frontFace, 1, -1); // Flip the normal if it is back facing. (For transparent cutouts.)
+    #endif
 
     // SurfaceData holds information about the material properties, such as colour.
     SurfaceData surfaceData = (SurfaceData)0; // Initialise it to 0.
@@ -87,3 +90,5 @@ float4 Fragment(Vert2Frag input) : SV_TARGET {
     // UniversalFragmentBlinnPhong is a URP library helper function that does Blinn-Phong lighting for us.
     return UniversalFragmentBlinnPhong(inputData, surfaceData);
 }
+
+#endif // MY_LIT_FORWARD_LIT_PASS_HLSL

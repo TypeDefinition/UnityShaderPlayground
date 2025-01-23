@@ -9,6 +9,12 @@ Shader "Terri/MyLit" {
 		[MainTexture] _AlbedoMap("Albedo", 2D) = "white" {}
 		_Smoothness("Smoothness", Float) = 0
 		_Specular("Specularity", Float) = 0.1
+		_AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+		// [Enum(UnityEngine.Rendering.CullMode)] _CullMode("Cull Mode", Integer) = 2 // Enum value of Back.
+
+		[HideInInspector] _CullMode("Cull Mode", Integer) = 2 // Enum value of Back.
+		[HideInInspector] _FaceRenderingMode("Face Rendering Mode", Integer) = 0
 
 		[HideInInspector] _SurfaceType("Surface Type", Integer) = 0
 		[HideInInspector] _SourceBlend("Source Blend", Integer) = 1 // Enum value of BlendMode.One.
@@ -20,12 +26,10 @@ Shader "Terri/MyLit" {
 	SubShader {
 		// These tags are shared by all passes in this sub shader.
 		// List of sub shader tags: https://docs.unity3d.com/Manual/SL-SubShaderTags.html
-		Tags {
+		Tags { 
 			"RenderPipeline" = "UniversalPipeline"
 			"RenderType" = "Opaque"
 			"Queue" = "Geometry"
-			// "RenderType" = "Transparent"
-			// "Queue" = "Transparent"
 		}
 
 		Pass {
@@ -37,6 +41,7 @@ Shader "Terri/MyLit" {
 			// ZWrite Off
 			Blend[_SourceBlend][_DestBlend]
 			ZWrite [_ZWrite]
+			Cull[_CullMode]
 
 			HLSLPROGRAM // Begin HLSL code.
 
@@ -55,6 +60,11 @@ Shader "Terri/MyLit" {
 			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
 			#pragma multi_compile_fragment _ _SHADOWS_SOFT
 
+			// Unlike multi compile macros, shader features always have an implicit _ as well.
+			// Compile a version with _ALPHA_CUTOUT, and one without.
+			#pragma shader_feature_local _ _ALPHA_CUTOUT
+			#pragma shader_feature_local _ _DOUBLE_SIDED_NORMALS
+
 			// Include our HLSL code. Seperating it out makes the code reusable.
 			#include "HLSL/MyLitForwardLitPass.hlsl"
 
@@ -66,14 +76,21 @@ Shader "Terri/MyLit" {
 			Name "ShadowCaster"
 			Tags {"LightMode" = "ShadowCaster"}
 
+			Cull[_CullMode]
+
 			// Tell the renderer that we don't need colour buffers.
 			ColorMask 0
 
 			HLSLPROGRAM
+
 			#pragma vertex Vertex
 			#pragma fragment Fragment
 
+			#pragma shader_feature_local _ _ALPHA_CUTOUT
+			#pragma shader_feature_local _ _DOUBLE_SIDED_NORMALS
+
 			#include "HLSL/MyLitShadowCasterPass.hlsl"
+
 			ENDHLSL
 		}
 	}
